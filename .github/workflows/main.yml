@@ -16,20 +16,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Use Node.js 14
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: 14
-          cache: "yarn"
+          node-version: 18
+          cache: "npm"
 
       - name: Install Node modules
-        run: yarn ci
-
-      - name: Linting
-        run: yarn lint
+        run: npm i
 
       - name: Unit & Integration tests
-        run: yarn test:ci
+        run: npm run test
 
       - name: Jest coverage report
         uses: ArtiomTr/jest-coverage-report-action@v2.0.6
