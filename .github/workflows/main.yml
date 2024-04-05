@@ -9,21 +9,21 @@ on:
 
 jobs:
   #First job
-  install-and-test:
-    runs-on: ubuntu-latest
+  # install-and-test:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Use Node.js 18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: "npm"
+  #     - name: Use Node.js 18
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
+  #         cache: "npm"
 
-      - name: Install Node modules
-        run: npm i
+  #     - name: Install Node modules
+  #       run: npm i
 
 
   # Second Job
