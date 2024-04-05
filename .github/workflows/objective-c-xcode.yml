@@ -1,30 +1,77 @@
-name: Xcode - Build and Analyze
+name: "iOS Build"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      publish:
+        required: false
+        type: boolean
+        description: Publish to Appcenter
+    secrets:
+      P12_BASE64:
+        required: true
+      MOBILEPROVISION_BASE64:
+        required: true
+      IOS_TEAM_ID:
+        required: true
+      CERTIFICATE_PASSWORD:
+        required: true
+      NPM_TOKEN:
+        required: true
+      APP_CENTER_TOKEN_IOS:
+        required: true
 
 jobs:
-  build:
-    name: Build and analyse default scheme using xcodebuild command
-    runs-on: macos-latest
-
+  build-ios:
+    runs-on: macos-12 #Monterey
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set Default Scheme
-        run: |
-          scheme_list=$(xcodebuild -list -json | tr -d "\n")
-          default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
-          echo $default | cat >default
-          echo Using default scheme: $default
-      - name: Build
-        env:
-          scheme: ${{ 'default' }}
-        run: |
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild clean build analyze -scheme "$scheme" -"$filetype_parameter" "$file_to_build" | xcpretty && exit ${PIPESTATUS[0]}
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 14
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: "yarn"
+
+      - name: Install Node modules
+        run: yarn ci
+
+      - name: Setup Ruby (bundle)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.6
+          bundler-cache: true
+
+      - name: Restore Pods cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+      - name: Install pod dependencies
+        run: cd ios && pod install && cd ..
+
+      - name: Build iOS (Release)
+        uses: yukiarrr/ios-build-action@v1.5.0
+        with:
+          project-path: ios/FinderUK.xcodeproj
+          p12-base64: ${{ secrets.P12_BASE64 }}
+          mobileprovision-base64: ${{ secrets.MOBILEPROVISION_BASE64 }}
+          code-signing-identity: "Apple Distribution"
+          certificate-password: ${{ secrets.CERTIFICATE_PASSWORD }}
+          team-id: ${{ secrets.IOS_TEAM_ID }}
+          workspace-path: ios/FinderUK.xcworkspace
+          output-path: "FinderUK.ipa"
+
+      - name: Upload build
+        uses: actions/upload-artifact@v3
+        with:
+          name: "FinderUK.ipa"
+          path: "FinderUK.ipa"
