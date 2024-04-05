@@ -1,6 +1,8 @@
 name: Pull Request into Master, Develop and Preprod
 
 on:
+  push:
+    branches: [ "main" ]
   pull_request:
     branches:
       - "main"
