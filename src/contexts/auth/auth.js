@@ -30,6 +30,7 @@ export const AuthProvider = ({children}) => {
 
   async function signIn(email, password) {
     try {
+      console.log(email, password)
       const authData = await authService.signIn(email, password);
 
       setAuthData(authData);

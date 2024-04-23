@@ -19,9 +19,8 @@ export function SignInScreen() {
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
       />
-      <Button title="Sign in" onPress={() => signIn({username, password})} />
+      <Button title="Sign in" onPress={() => signIn(username, password)} />
     </View>
   );
 }

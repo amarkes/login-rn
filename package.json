@@ -8,6 +8,7 @@
     "ios2": "react-native run-ios --simulator='iPhone13'",
     "lint": "eslint .",
     "start": "react-native start",
+    "clear": "react-native start --reset-cache",
     "test": "jest"
   },
   "dependencies": {
